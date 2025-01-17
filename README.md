@@ -32,6 +32,7 @@ mcman init [path] [options]
 ```
 
 **Options**:
+
 - `-v, --mc-version <version>`: Specify the Minecraft version.
 - `-b, --build <build>`: Specify the build to download.
 - `-e, --accept-eula`: Accept the Minecraft EULA.
@@ -39,6 +40,7 @@ mcman init [path] [options]
 - `-o, --online-mode`: Enable online mode.
 
 **Example**:
+
 ```bash
 mcman init ./myserver -v 1.20.1 -e -p 25565 -o
 ```
@@ -54,11 +56,13 @@ mcman start [name] [options]
 ```
 
 **Options**:
+
 - `--flags <flags>`: Specify the Java flags to use.
 - `--gui`: Open the server gui.
 - `-m, --memory <memory>`: Specify the amount of memory to allocate.
 
 **Example**:
+
 ```bash
 mcman start myserver -m 4G --gui
 ```
@@ -74,9 +78,11 @@ mcman save [path] [options]
 ```
 
 **Options**:
+
 - `-n, --name <name>`: Specify the name of the server.
 
 **Example**:
+
 ```bash
 mcman save ./myserver -n myserver
 ```
@@ -92,6 +98,7 @@ mcman ls
 ```
 
 **Example**:
+
 ```bash
 mcman ls
 ```
@@ -107,6 +114,7 @@ mcman rm <name>
 ```
 
 **Example**:
+
 ```bash
 mcman rm myserver
 ```
@@ -122,10 +130,10 @@ mcman config
 ```
 
 **Example**:
+
 ```bash
 mcman config
 ```
-
 
 ## 📝 License
 

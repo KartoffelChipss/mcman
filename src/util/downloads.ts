@@ -3,7 +3,11 @@ import path from 'path';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
 
-export async function downloadFile(url: string, destination: string, fileName: string): Promise<void> {
+export async function downloadFile(
+    url: string,
+    destination: string,
+    fileName: string
+): Promise<void> {
     try {
         if (!fs.existsSync(destination)) {
             fs.mkdirSync(destination, { recursive: true });
@@ -29,13 +33,10 @@ export async function downloadFile(url: string, destination: string, fileName: s
                 } else {
                     this.push(Buffer.from(value));
                 }
-            },
+            }
         });
 
-        await pipeline(
-            nodeStream,
-            fs.createWriteStream(fullDestination)
-        );
+        await pipeline(nodeStream, fs.createWriteStream(fullDestination));
 
         console.log(`File downloaded to ${fullDestination}`);
     } catch (error) {

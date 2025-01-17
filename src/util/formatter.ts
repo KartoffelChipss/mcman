@@ -116,7 +116,7 @@ export function logTable(
         let formattedRow = '';
 
         for (let i = 0; i < row.length; i++) {
-            const column = row[i] + "&r";
+            const column = row[i] + '&r';
             const padding = spaceChar.repeat(
                 longestInColumn[i] - removeFormatting(column).length
             );
@@ -142,9 +142,7 @@ export function logTable(
                     if (i === 0 && firstColumnLine) {
                         separatorRow += `${lineChar}${lineFormat ? formatString(`${lineFormat}+`) : '+'}`;
                     } else {
-                        separatorRow += lineChar.repeat(
-                            gapBetweenColumns
-                        );
+                        separatorRow += lineChar.repeat(gapBetweenColumns);
                     }
                 }
             }

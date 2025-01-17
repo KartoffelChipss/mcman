@@ -10,10 +10,18 @@ export interface StartCommandOptions {
     memory?: string;
 }
 
-export const startCommand = async (name: string|undefined, options: StartCommandOptions) => {
-    const flags = (options.flags !== undefined ? options.flags : appConfig.get('javaArgs') as string).split(' ');
+export const startCommand = async (
+    name: string | undefined,
+    options: StartCommandOptions
+) => {
+    const flags = (
+        options.flags !== undefined
+            ? options.flags
+            : (appConfig.get('javaArgs') as string)
+    ).split(' ');
     const gui = options.gui !== undefined ? options.gui : appConfig.get('gui');
-    const memory = options.memory !== undefined ? options.memory : appConfig.get('memory');
+    const memory =
+        options.memory !== undefined ? options.memory : appConfig.get('memory');
 
     if (name) {
         const serverJar = await getJarFromName(name);
@@ -33,7 +41,12 @@ export const startCommand = async (name: string|undefined, options: StartCommand
 
 import { spawn } from 'child_process';
 
-const startServer = async (serverJar: string, flags: string[], gui: boolean, memory: string) => {
+const startServer = async (
+    serverJar: string,
+    flags: string[],
+    gui: boolean,
+    memory: string
+) => {
     const dir = path.dirname(serverJar);
     const jarName = path.basename(serverJar);
     const command = 'java';
@@ -43,7 +56,7 @@ const startServer = async (serverJar: string, flags: string[], gui: boolean, mem
         ...flags,
         '-jar',
         jarName,
-        gui ? '' : '--nogui',
+        gui ? '' : '--nogui'
     ].filter((arg) => arg !== '');
 
     logFormatted(`&aStarting server in directory: ${dir}`);
@@ -62,7 +75,9 @@ const startServer = async (serverJar: string, flags: string[], gui: boolean, mem
 
 const getJarFromName = async (name: string) => {
     const servers = appConfig.get('servers');
-    const server = servers.find((server: any) => server.name.toLowerCase() === name.toLowerCase());
+    const server = servers.find(
+        (server: any) => server.name.toLowerCase() === name.toLowerCase()
+    );
 
     if (!server) {
         logFormatted('&cNo server found with that name!');

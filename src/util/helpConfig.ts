@@ -1,5 +1,5 @@
-import { HelpConfiguration } from "commander";
-import { styleText } from "util";
+import { HelpConfiguration } from 'commander';
+import { styleText } from 'util';
 
 const helpConfig: HelpConfiguration = {
     styleTitle: (str) => styleText('bold', str),
@@ -9,6 +9,6 @@ const helpConfig: HelpConfiguration = {
     styleOptionText: (str) => styleText('green', str),
     styleArgumentText: (str) => styleText('yellow', str),
     styleSubcommandText: (str) => styleText('blue', str)
-}
+};
 
 export default helpConfig;

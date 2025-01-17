@@ -84,7 +84,7 @@ export const initCommand = async (
     const fileSpinner = ora('Creating server files...').start();
 
     await writeEulaFile(cwd, shouldAcceptEula);
-    
+
     await writePropertiesFile(cwd, port, onlineMode);
 
     fileSpinner.succeed('Server files created successfully.');

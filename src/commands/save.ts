@@ -23,14 +23,17 @@ export const saveCommand = async (
     }
 
     const servers = appConfig.get('servers');
-    const serverIndex = servers.findIndex((server: any) => server.name.toLowerCase() === name.toLowerCase());
+    const serverIndex = servers.findIndex(
+        (server: any) => server.name.toLowerCase() === name.toLowerCase()
+    );
 
     if (serverIndex !== -1) {
         const shouldOverride = await inquirer.prompt([
             {
                 type: 'confirm',
                 name: 'override',
-                message: 'A server with this name already exists. Do you want to override it?',
+                message:
+                    'A server with this name already exists. Do you want to override it?',
                 default: false
             }
         ]);
@@ -64,7 +67,7 @@ const findServerJar = async (dir: string): Promise<string | null> => {
     }
 
     let serverJar = null;
-    
+
     const jarFiles = await findJarFiles(dir);
 
     if (jarFiles.length === 0) {

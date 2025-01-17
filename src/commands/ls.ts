@@ -12,8 +12,8 @@ export const lsCommand = async () => {
         [['Name', 'Folder', 'Server Jar']].concat(
             servers.map((server: any) => [
                 server.name,
-                "&f" + path.basename(path.dirname(server.serverJar)),
-                "&f" + path.basename(server.serverJar)
+                '&f' + path.basename(path.dirname(server.serverJar)),
+                '&f' + path.basename(server.serverJar)
             ])
         ),
         {
