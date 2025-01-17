@@ -18,7 +18,7 @@ A Minecraft CLI app to quickly install and manage Minecraft servers
 ## 📦 Installation
 
 ```bash
-npm install -g mc-manager
+npm install -g @kchips/mcman
 ```
 
 ## 📋 Commands

@@ -1,5 +1,5 @@
 {
-    "name": "mc-manager",
+    "name": "@kchips/mcman",
     "version": "1.0.0",
     "description": "Easily manage minecraft servers for development",
     "main": "dist/index.js",
@@ -40,5 +40,25 @@
         "tsx": "^4.6.2",
         "typescript": "^5.5.3",
         "typescript-eslint": "^8.18.1"
+    },
+    "keywords": [
+        "minecraft",
+        "server",
+        "management"
+    ],
+    "readme": "README.md",
+    "homepage": "https://www.npmjs.com/package/@kchips/mcman",
+    "bugs": {
+        "url": "https://github.com/KartoffelChipss/mcman/issues"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/KartoffelChipss/mcman"
+    },
+    "author": {
+        "name": "KartoffelChipss",
+        "email": "contact@strassburger.org",
+        "url": "https://strassburger.org"
     }
 }
