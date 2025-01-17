@@ -37,7 +37,7 @@ program
     .command('start [name]')
     .description('Start a server')
     .option('--flags <flags>', 'Specify the Java flags to use')
-    .option('--gui', 'Open the server in a GUI')
+    .option('--gui', 'Open the server GUI')
     .option('-m, --memory <memory>', 'Specify the amount of memory to allocate')
     .action((name: string|undefined, options: StartCommandOptions) =>
         startCommand(name, options)
