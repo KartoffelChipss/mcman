@@ -17,6 +17,7 @@
         "format": "prettier --write ."
     },
     "dependencies": {
+        "pidusage": "^3.0.2",
         "chalk": "^5.4.0",
         "commander": "^13.0.0-0",
         "crypto": "^1.0.1",
@@ -31,6 +32,7 @@
         "@types/inquirer": "^9.0.7",
         "@types/js-yaml": "^4.0.9",
         "@types/node": "^20.10.0",
+        "@types/pidusage": "^2.0.5",
         "@typescript-eslint/parser": "^8.18.1",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^9.1.0",
