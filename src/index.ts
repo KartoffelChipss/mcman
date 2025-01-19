@@ -10,6 +10,7 @@ import { lsCommand } from './commands/ls';
 import { rmCommand } from './commands/rm';
 import { startCommand, StartCommandOptions } from './commands/start';
 import { stopCommand } from './commands/stop';
+import { openDirCommand, OpenDirCommandOptions } from './commands/openDir';
 
 const VERSION = '1.0.0';
 
@@ -67,6 +68,13 @@ program
     .command('rm <name>')
     .description('Remove a saved server')
     .action((name: string) => rmCommand(name));
+
+program
+    .command('open-dir <name>')
+    .description('Open the directory of a saved server')
+    .option('-p, --path', 'Print the path instead of opening it')
+    .alias('od')
+    .action((name: string, options: OpenDirCommandOptions) => openDirCommand(name, options));
 
 program
     .command('config')

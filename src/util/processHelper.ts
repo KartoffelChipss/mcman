@@ -1,3 +1,5 @@
+import { exec } from "child_process";
+
 export const isProcessRunning = (pid: number|null): boolean => {
     try {
         if (!pid) return false;
@@ -7,4 +9,27 @@ export const isProcessRunning = (pid: number|null): boolean => {
     } catch (error: any) {
         return error.code === 'EPERM' || error.code === 'ESRCH' ? false : true;
     }
+};
+
+export const openInDefaultApp = (path: string): Promise<void> => {
+    const openCommand =
+        process.platform === 'win32'
+            ? 'start'
+            : process.platform === 'darwin'
+              ? 'open'
+              : 'xdg-open';
+
+    return new Promise((resolve, reject) => {
+        exec(`${openCommand} "${path}"`, (err) => {
+            if (err) {
+                reject(
+                    new Error(
+                        `Failed to open in the default editor: ${err.message}`
+                    )
+                );
+            } else {
+                resolve();
+            }
+        });
+    });
 };

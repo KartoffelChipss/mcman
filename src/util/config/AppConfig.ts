@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { exec } from 'child_process';
+import { openInDefaultApp } from '../processHelper';
 
 export class AppConfig {
     private configPath: string;
@@ -71,26 +72,7 @@ export class AppConfig {
         return this.configPath;
     }
 
-    public openInEditor(): Promise<void> {
-        const openCommand =
-            process.platform === 'win32'
-                ? 'start'
-                : process.platform === 'darwin'
-                  ? 'open'
-                  : 'xdg-open';
-
-        return new Promise((resolve, reject) => {
-            exec(`${openCommand} "${this.configPath}"`, (err) => {
-                if (err) {
-                    reject(
-                        new Error(
-                            `Failed to open the config file: ${err.message}`
-                        )
-                    );
-                } else {
-                    resolve();
-                }
-            });
-        });
+    public async openInEditor(): Promise<void> {
+        await openInDefaultApp(this.configPath);
     }
 }
