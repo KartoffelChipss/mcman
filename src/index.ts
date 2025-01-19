@@ -25,7 +25,7 @@ program
 
 program
     .command('init [path]')
-    .description('Initialize a new project with a specific Minecraft version')
+    .description('Initialize a new Minecraft server')
     .option('-v, --mc-version <version>', 'Specify the Minecraft version')
     .option('-b, --build <build>', 'Specify the build to download')
     .option('-e, --accept-eula', 'Accept the Minecraft EULA')
@@ -65,7 +65,8 @@ program
     .action(() => lsCommand());
 
 program
-    .command('rm <name>')
+    .command('remove <name>')
+    .alias('rm')
     .description('Remove a saved server')
     .action((name: string) => rmCommand(name));
 
