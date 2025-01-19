@@ -13,6 +13,7 @@ import { logFormatted, logSpaceBetween, logTable } from '../util/formatter';
 import { downloadFile } from '../util/downloads';
 import path from 'path';
 import { writeEulaFile, writePropertiesFile } from '../util/fileWriter';
+import { addServer, getServerByName } from '../util/config/serverConfigManager';
 
 export interface InitCommandOptions {
     mcVersion?: string;
@@ -91,7 +92,70 @@ export const initCommand = async (
 
     await downloadAndVerifyJar(selectedVersion, selectedBuild, buildInfo, cwd);
 
+    const shouldSaveServer = await getShouldSaveServer();
+
+    if (!shouldSaveServer) {
+        logFormatted('&aServer setup complete!');
+        process.exit(0);
+    }
+
+    const serverName = await getServerName(path.basename(cwd));
+
+    const saveSpinner = ora('Saving server configuration...').start();
+
+    addServer({
+        name: serverName,
+        serverJar: path.resolve(cwd, 'server.jar'),
+        pid: null
+    });
+
+    saveSpinner.succeed('Server configuration saved successfully!');
+
+    logFormatted('&aServer setup complete!');
+
     process.exit(0);
+};
+
+const getServerName = async (defaultName: string) => {
+    let serverName: string | null = null;
+
+    while (!serverName) {
+        const { name } = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'name',
+                message: 'Enter a name for the server:',
+                default: defaultName
+            }
+        ]);
+
+        if (name.trim() === '') {
+            logFormatted('&eServer name cannot be empty');
+            continue;
+        }
+
+        if (getServerByName(name, true)) {
+            logFormatted(`&eServer with name "${name}" already exists`);
+            continue;
+        }
+
+        serverName = name;
+    }
+
+    return serverName;
+};
+
+const getShouldSaveServer = async () => {
+    const { saveServer } = await inquirer.prompt([
+        {
+            type: 'confirm',
+            name: 'saveServer',
+            message: 'Save the server configuration?',
+            default: true
+        }
+    ]);
+
+    return saveServer;
 };
 
 const getShouldAcceptEula = async () => {
