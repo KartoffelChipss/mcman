@@ -9,6 +9,7 @@ import { saveCommand, SaveCommandOptions } from './commands/save';
 import { lsCommand } from './commands/ls';
 import { rmCommand } from './commands/rm';
 import { startCommand, StartCommandOptions } from './commands/start';
+import { stopCommand } from './commands/stop';
 
 const VERSION = '1.0.0';
 
@@ -52,8 +53,13 @@ program
     );
 
 program
-    .command('ls')
-    .alias('list')
+    .command('stop <name>')
+    .description('Stop a running server')
+    .action((name: string) => stopCommand(name));
+
+program
+    .command('list')
+    .alias('ls')
     .description('List all saved servers')
     .action(() => lsCommand());
 

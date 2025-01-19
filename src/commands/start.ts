@@ -3,6 +3,13 @@ import fs from 'fs';
 import { appConfig } from '../util/config/mainConfig';
 import { logFormatted } from '../util/formatter';
 import inquirer from 'inquirer';
+import { spawn } from 'child_process';
+import {
+    getServerByName,
+    ServerConfig,
+    updateServer
+} from '../util/config/serverConfigManager';
+import { isProcessRunning } from '../util/processHelper';
 
 export interface StartCommandOptions {
     flags?: string;
@@ -24,8 +31,30 @@ export const startCommand = async (
         options.memory !== undefined ? options.memory : appConfig.get('memory');
 
     if (name) {
+        const server: ServerConfig | undefined = getServerByName(name);
+
+        if (server && isProcessRunning(server.pid)) {
+            logFormatted('&cServer is already running!');
+            process.exit(1);
+        }
+
         const serverJar = await getJarFromName(name);
-        startServer(serverJar, flags, gui, memory);
+        const pid = startServer(serverJar, flags, gui, memory);
+
+        if (!pid) {
+            logFormatted('&cError starting server!');
+            process.exit(1);
+        }
+
+        updateServer(
+            {
+                name,
+                serverJar,
+                pid
+            },
+            true
+        );
+
         return;
     }
 
@@ -39,14 +68,12 @@ export const startCommand = async (
     startServer(serverJar, flags, gui, memory);
 };
 
-import { spawn } from 'child_process';
-
-const startServer = async (
+const startServer = (
     serverJar: string,
     flags: string[],
     gui: boolean,
     memory: string
-) => {
+): number | null => {
     const dir = path.dirname(serverJar);
     const jarName = path.basename(serverJar);
     const command = 'java';
@@ -62,15 +89,36 @@ const startServer = async (
     logFormatted(`&aStarting server in directory: ${dir}`);
     logFormatted(`&8Command: ${command} ${args.join(' ')}`);
 
-    const serverProcess = spawn(command, args, { cwd: dir, stdio: 'inherit' });
+    const serverProcess = spawn(command, args, {
+        cwd: dir,
+        detached: false,
+        stdio: 'inherit'
+    });
 
-    serverProcess.on('exit', (code) => {
-        logFormatted(`&aServer process exited with code ${code}`);
+    const pid = serverProcess.pid;
+
+    if (!pid) {
+        logFormatted('&cError starting server!');
+        return null;
+    }
+
+    logFormatted(`&aServer started with PID: ${pid}`);
+
+    process.on('SIGINT', () => {
+        logFormatted('&cReceived SIGINT (Ctrl + C), stopping the server...');
+        serverProcess.kill('SIGTERM');
+        process.exit(0);
     });
 
     serverProcess.on('error', (error) => {
         logFormatted(`&cError starting server: ${error.message}`);
     });
+
+    serverProcess.on('exit', (code) => {
+        logFormatted(`&cServer exited with code: ${code}`);
+    });
+
+    return pid;
 };
 
 const getJarFromName = async (name: string) => {

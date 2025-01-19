@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import inquirer from 'inquirer';
 import { logFormatted } from '../util/formatter';
 import { appConfig } from '../util/config/mainConfig';
+import { ServerConfig } from '../util/config/serverConfigManager';
 
 export interface SaveCommandOptions {
     name?: string;
@@ -46,10 +47,13 @@ export const saveCommand = async (
         servers.splice(serverIndex, 1);
     }
 
-    servers.push({
+    const serverData: ServerConfig = {
         name,
-        serverJar
-    });
+        serverJar,
+        pid: null
+    }
+
+    servers.push(serverData);
 
     appConfig.set('servers', servers);
 
