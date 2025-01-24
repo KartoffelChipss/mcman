@@ -12,7 +12,7 @@ import { startCommand, StartCommandOptions } from './commands/start';
 import { stopCommand } from './commands/stop';
 import { openDirCommand, OpenDirCommandOptions } from './commands/openDir';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 const program = new Command();
 
