@@ -7,7 +7,7 @@ export const isProcessRunning = (pid: number|null): boolean => {
         process.kill(pid, 0);
         return true;
     } catch (error: any) {
-        return error.code === 'EPERM' || error.code === 'ESRCH' ? false : true;
+        return !error.code || error.code === 'EPERM' || error.code === 'ESRCH' ? false : true;
     }
 };
 
