@@ -39,7 +39,7 @@ export const startCommand = async (
         }
 
         const serverJar = await getJarFromName(name);
-        const pid = startServer(serverJar, flags, gui, memory);
+        const pid = startServer(serverJar, flags, gui, memory, name);
 
         if (!pid) {
             logFormatted('&cError starting server!');
@@ -72,7 +72,8 @@ const startServer = (
     serverJar: string,
     flags: string[],
     gui: boolean,
-    memory: string
+    memory: string,
+    serverName?: string
 ): number | null => {
     const dir = path.dirname(serverJar);
     const jarName = path.basename(serverJar);
@@ -106,6 +107,14 @@ const startServer = (
 
     process.on('SIGINT', () => {
         logFormatted('&cReceived SIGINT (Ctrl + C), stopping the server...');
+        if (serverName) updateServer(
+            {
+                name: serverName,
+                serverJar: serverJar,
+                pid: null,
+            },
+            false
+        )
         serverProcess.kill('SIGTERM');
         process.exit(0);
     });
@@ -116,6 +125,15 @@ const startServer = (
 
     serverProcess.on('exit', (code) => {
         logFormatted(`&cServer exited with code: ${code}`);
+
+        if (serverName) updateServer(
+            {
+                name: serverName,
+                serverJar: serverJar,
+                pid: null,
+            },
+            false
+        )
     });
 
     return pid;
