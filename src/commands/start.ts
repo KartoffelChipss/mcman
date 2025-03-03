@@ -15,6 +15,7 @@ export interface StartCommandOptions {
     flags?: string;
     gui?: boolean;
     memory?: string;
+    detach?: boolean;
 }
 
 export const startCommand = async (
@@ -29,6 +30,7 @@ export const startCommand = async (
     const gui = options.gui !== undefined ? options.gui : appConfig.get('gui');
     const memory =
         options.memory !== undefined ? options.memory : appConfig.get('memory');
+    const detach = options.detach !== undefined ? options.detach : false;
 
     if (name) {
         const server: ServerConfig | undefined = getServerByName(name);
@@ -39,7 +41,7 @@ export const startCommand = async (
         }
 
         const serverJar = await getJarFromName(name);
-        const pid = startServer(serverJar, flags, gui, memory, name);
+        const pid = startServer(serverJar, flags, gui, memory, detach, name);
 
         if (!pid) {
             logFormatted('&cError starting server!');
@@ -55,6 +57,7 @@ export const startCommand = async (
             true
         );
 
+        if (detach) process.exit(0);
         return;
     }
 
@@ -65,7 +68,8 @@ export const startCommand = async (
         process.exit(1);
     }
 
-    startServer(serverJar, flags, gui, memory);
+    startServer(serverJar, flags, gui, memory, detach);
+    if (detach) process.exit(0);
 };
 
 const startServer = (
@@ -73,7 +77,8 @@ const startServer = (
     flags: string[],
     gui: boolean,
     memory: string,
-    serverName?: string
+    detach: boolean,
+    serverName?: string,
 ): number | null => {
     const dir = path.dirname(serverJar);
     const jarName = path.basename(serverJar);
@@ -92,8 +97,8 @@ const startServer = (
 
     const serverProcess = spawn(command, args, {
         cwd: dir,
-        detached: false,
-        stdio: 'inherit'
+        detached: detach,
+        stdio: detach ? 'ignore' : 'inherit'
     });
 
     const pid = serverProcess.pid;
