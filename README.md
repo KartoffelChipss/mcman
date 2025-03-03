@@ -60,6 +60,7 @@ mcman start [name] [options]
 - `--flags <flags>`: Specify the Java flags to use.
 - `--gui`: Open the server gui.
 - `-m, --memory <memory>`: Specify the amount of memory to allocate.
+- `-d, --detach`: Detach the server process
 
 **Example**:
 
@@ -97,12 +98,6 @@ List all saved servers.
 mcman ls
 ```
 
-**Example**:
-
-```bash
-mcman ls
-```
-
 ---
 
 ### `rm`
@@ -123,13 +118,11 @@ mcman rm myserver
 
 ### `config`
 
-Open the configuration file in the default editor.
+Prints the path to the mcman config file.
 
-```bash
-mcman config
-```
+**Options**:
 
-**Example**:
+- `-e, --edit`: Open the config file in the default text editor
 
 ```bash
 mcman config
