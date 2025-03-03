@@ -81,7 +81,11 @@ program
 program
     .command('config')
     .description('Open the configuration file in the default editor')
-    .action(() => appConfig.openInEditor());
+    .option('-e, --edit', 'Open the configuration file in the default editor')
+    .action((options) => {
+        if (options.edit) appConfig.openInEditor();
+        else console.log(appConfig.getConfigPath());
+    });
 
 program
     .command('help')
