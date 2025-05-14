@@ -82,6 +82,8 @@ export const initCommand = async (
         process.exit(1);
     }
 
+    if (!fs.existsSync(cwd)) fs.mkdirSync(cwd, { recursive: true });
+
     const fileSpinner = ora('Creating server files...').start();
 
     await writeEulaFile(cwd, shouldAcceptEula);
