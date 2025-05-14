@@ -1,4 +1,5 @@
-testprojects
+testprojects/
+jars/
 
 # Created by https://www.toptal.com/developers/gitignore/api/node,intellij,webstorm,webstorm+iml,webstorm+all,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,intellij,webstorm,webstorm+iml,webstorm+all,visualstudiocode

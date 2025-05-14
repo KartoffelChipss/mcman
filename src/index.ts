@@ -11,6 +11,7 @@ import { rmCommand } from './commands/rm';
 import { startCommand, StartCommandOptions } from './commands/start';
 import { stopCommand } from './commands/stop';
 import { openDirCommand, OpenDirCommandOptions } from './commands/openDir';
+import { jarInfoCommand } from './commands/jarInfo';
 
 const VERSION = '1.1.2';
 
@@ -76,7 +77,9 @@ program
     .description('Open the directory of a saved server')
     .option('-p, --path', 'Print the path instead of opening it')
     .alias('od')
-    .action((name: string, options: OpenDirCommandOptions) => openDirCommand(name, options));
+    .action((name: string, options: OpenDirCommandOptions) =>
+        openDirCommand(name, options)
+    );
 
 program
     .command('config')
@@ -85,6 +88,13 @@ program
     .action((options) => {
         if (options.edit) appConfig.openInEditor();
         else console.log(appConfig.getConfigPath());
+    });
+
+program
+    .command('jarinfo <jarPath>')
+    .description('Get information about a Minecraft server jar file')
+    .action((jarPath: string) => {
+        jarInfoCommand(jarPath);
     });
 
 program

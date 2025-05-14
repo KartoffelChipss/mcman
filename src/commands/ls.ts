@@ -5,6 +5,8 @@ import { isProcessRunning } from '../util/processHelper';
 import { ServerConfig } from '../util/config/serverConfigManager';
 import pidusage from 'pidusage';
 import os from 'os';
+import { getMinecraftJarInfo } from '../util/jarInfo';
+import { existsSync } from 'fs';
 
 export const lsCommand = async () => {
     const servers = appConfig.get('servers');
@@ -39,15 +41,28 @@ export const lsCommand = async () => {
             }
         }
 
+        const serverJarExists = existsSync(server.serverJar);
+        const jarExistsExtension = serverJarExists ? '' : '&e ‼';
+
+        const serverJarInfo = getMinecraftJarInfo(server.serverJar);
+        let formattedServerType = '';
+        if (serverJarInfo) {
+            formattedServerType =
+                serverJarInfo.software +
+                (serverJarInfo.version ? ` ${serverJarInfo.version}` : '');
+        } else {
+            formattedServerType = 'Unknown';
+        }
+
         return [
-            server.name,
-            pidStatus,
-            status,
-            '&f' + path.basename(path.dirname(server.serverJar)),
-            '&f' + path.basename(server.serverJar),
-            '&f' + memory,
-            '&f' + cpu,
-            '&f' + uptime
+            server.name + jarExistsExtension, // Name
+            pidStatus, // PID
+            status, // Status
+            '&f' + path.basename(path.dirname(server.serverJar)), // Folder
+            '&f' + formattedServerType, // Server Type
+            '&f' + memory, // Memory
+            '&f' + cpu, // CPU
+            '&f' + uptime // Uptime
         ];
     });
 
@@ -60,7 +75,7 @@ export const lsCommand = async () => {
                 'PID',
                 'Status',
                 'Folder',
-                'Server Jar',
+                'Server Type',
                 'Memory',
                 'CPU',
                 'Uptime'
