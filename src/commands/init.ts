@@ -5,15 +5,21 @@ import ora from 'ora';
 import {
     getBuildInfo,
     getBuilds,
+    getProjectList,
     getVersions,
     ProjectBuildResponse,
     VersionResponse
 } from '../util/papeApi';
-import { logFormatted, logSpaceBetween, logTable } from '../util/formatter';
+import { logFormatted, logTable } from '../util/formatter';
 import { downloadFile } from '../util/downloads';
 import path from 'path';
-import { writeEulaFile, writePropertiesFile } from '../util/fileWriter';
+import {
+    writeEulaFile,
+    writePropertiesFile,
+    writeWaterfallConfig
+} from '../util/fileWriter';
 import { addServer, getServerByName } from '../util/config/serverConfigManager';
+import { isMinecraftProxy } from '../util/jarInfo';
 
 export interface InitCommandOptions {
     mcVersion?: string;
@@ -29,38 +35,59 @@ export const initCommand = async (
 ) => {
     const cwd = workingDir ? path.resolve(workingDir) : process.cwd();
 
-    const shouldAcceptEula =
-        options.acceptEula === undefined
-            ? await getShouldAcceptEula()
-            : options.acceptEula;
+    const serverSoftware = await selectServerSoftware();
+    const isProxy = isMinecraftProxy(serverSoftware);
 
-    const port = options.port === undefined ? await getPort() : options.port;
+    const availableVersions = await fetchAvailableVersions(serverSoftware);
+    if (!availableVersions) return;
 
-    const onlineMode =
-        options.onlineMode === undefined
-            ? await getShouldUseOnlineMode()
-            : options.onlineMode;
-
-    const availablePaperVersions = await fetchAvailableVersions();
-    if (!availablePaperVersions) return;
-
-    const selectedGroup = await selectVersionGroup(availablePaperVersions);
+    const selectedGroup = await selectVersionGroup(availableVersions);
     if (!selectedGroup) return;
 
     const selectedVersion = await selectVersionFromGroup(
-        availablePaperVersions,
+        availableVersions,
         selectedGroup
     );
     if (!selectedVersion) return;
 
-    const selectedBuild = await selectBuild(selectedVersion);
+    const selectedBuild = await selectBuild(serverSoftware, selectedVersion);
     if (!selectedBuild) return;
 
-    const buildInfo = await fetchBuildInfo(selectedVersion, selectedBuild);
+    const buildInfo = await fetchBuildInfo(
+        serverSoftware,
+        selectedVersion,
+        selectedBuild
+    );
     if (!buildInfo) return;
+
+    const defaultPort = isProxy ? 25577 : 25565;
+
+    let shouldAcceptEula = null;
+    let port = null;
+    let onlineMode = null;
+
+    if (!isProxy || serverSoftware === 'waterfall') {
+        port =
+            options.port === undefined
+                ? await getPort(defaultPort)
+                : options.port;
+    }
+
+    if (!isProxy) {
+        shouldAcceptEula =
+            options.acceptEula === undefined
+                ? await getShouldAcceptEula()
+                : options.acceptEula;
+
+        onlineMode =
+            options.onlineMode === undefined
+                ? await getShouldUseOnlineMode()
+                : options.onlineMode;
+    }
 
     await printInfoOverview(
         cwd,
+        serverSoftware,
         selectedVersion,
         selectedBuild,
         shouldAcceptEula,
@@ -84,15 +111,27 @@ export const initCommand = async (
 
     if (!fs.existsSync(cwd)) fs.mkdirSync(cwd, { recursive: true });
 
-    const fileSpinner = ora('Creating server files...').start();
+    if (!isProxy) {
+        const fileSpinner = ora('Creating server files...').start();
 
-    await writeEulaFile(cwd, shouldAcceptEula);
+        await writeEulaFile(cwd, shouldAcceptEula);
 
-    await writePropertiesFile(cwd, port, onlineMode);
+        await writePropertiesFile(cwd, port, onlineMode);
 
-    fileSpinner.succeed('Server files created successfully.');
+        fileSpinner.succeed('Server files created successfully.');
+    }
 
-    await downloadAndVerifyJar(selectedVersion, selectedBuild, buildInfo, cwd);
+    if (serverSoftware === 'waterfall') {
+        await writeWaterfallConfig(cwd, port);
+    }
+
+    await downloadAndVerifyJar(
+        serverSoftware,
+        selectedVersion,
+        selectedBuild,
+        buildInfo,
+        cwd
+    );
 
     const shouldSaveServer = await getShouldSaveServer();
 
@@ -173,13 +212,13 @@ const getShouldAcceptEula = async () => {
     return acceptEula;
 };
 
-const getPort = async () => {
+const getPort = async (defaultPort: number = 25565) => {
     const { port } = await inquirer.prompt([
         {
             type: 'number',
             name: 'port',
             message: 'Enter the port to run the server on:',
-            default: 25565
+            default: defaultPort
         }
     ]);
 
@@ -199,9 +238,40 @@ const getShouldUseOnlineMode = async () => {
     return onlineMode;
 };
 
-const fetchAvailableVersions = async () => {
+const selectServerSoftware = async (): Promise<string> => {
+    const spinner = ora(`Fetching available server software...`).start();
+    const availableSoftware = await getProjectList();
+    spinner.stop();
+
+    if (availableSoftware === null) {
+        logFormatted('&cNo data available to select software');
+        return 'paper';
+    }
+
+    const priority = ['paper', 'velocity', 'folia', 'waterfall'];
+    const sortedSoftware = [
+        ...priority.filter((p) => availableSoftware.includes(p)),
+        ...availableSoftware.filter((s) => !priority.includes(s))
+    ];
+
+    const defaultSoftware = sortedSoftware[0];
+
+    const { selectServerSoftware } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'selectServerSoftware',
+            message: `Choose a server software:`,
+            choices: sortedSoftware,
+            default: defaultSoftware
+        }
+    ]);
+
+    return selectServerSoftware;
+};
+
+const fetchAvailableVersions = async (project: string) => {
     const spinner = ora('Fetching available Paper versions...').start();
-    const availablePaperVersions = await getVersions();
+    const availablePaperVersions = await getVersions(project);
     spinner.stop();
 
     if (availablePaperVersions === null) {
@@ -213,8 +283,14 @@ const fetchAvailableVersions = async () => {
 };
 
 const selectVersionGroup = async (availablePaperVersions: VersionResponse) => {
-    const availableVersionGroups =
-        availablePaperVersions.version_groups.reverse();
+    const availableVersionGroups = Array.from(
+        new Set(
+            availablePaperVersions.versions.map((version) => {
+                const parts = version.split('.');
+                return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : version;
+            })
+        )
+    ).reverse();
     const latestVersionGroup = availableVersionGroups[0];
 
     const { selectedGroup } = await inquirer.prompt([
@@ -258,11 +334,11 @@ const selectVersionFromGroup = async (
     return selectedVersion;
 };
 
-const selectBuild = async (selectedVersion: string) => {
+const selectBuild = async (project: string, selectedVersion: string) => {
     const spinner = ora(
         `Fetching builds for version ${selectedVersion}...`
     ).start();
-    const availableBuildsRaw = await getBuilds(selectedVersion);
+    const availableBuildsRaw = await getBuilds(project, selectedVersion);
     spinner.stop();
 
     if (availableBuildsRaw === null) {
@@ -289,13 +365,18 @@ const selectBuild = async (selectedVersion: string) => {
 };
 
 const fetchBuildInfo = async (
+    project: string,
     selectedVersion: string,
     selectedBuild: string
 ) => {
     const spinner = ora(
         `Fetching build info for version ${selectedVersion}, build ${selectedBuild}...`
     ).start();
-    const buildInfo = await getBuildInfo(selectedVersion, selectedBuild);
+    const buildInfo = await getBuildInfo(
+        project,
+        selectedVersion,
+        selectedBuild
+    );
     spinner.stop();
 
     if (buildInfo === null) {
@@ -307,12 +388,14 @@ const fetchBuildInfo = async (
 };
 
 const downloadAndVerifyJar = async (
+    project: string,
     selectedVersion: string,
     selectedBuild: string,
     buildInfo: ProjectBuildResponse,
     cwd: string
 ) => {
     const downloadSuccess = await downloadJar(
+        project,
         selectedVersion,
         selectedBuild,
         buildInfo.downloads.application.name,
@@ -330,6 +413,7 @@ const downloadAndVerifyJar = async (
 };
 
 async function downloadJar(
+    project: string,
     version: string,
     build: string | number,
     fileName: string,
@@ -337,7 +421,7 @@ async function downloadJar(
     sha256: string,
     targetPath: string
 ): Promise<boolean> {
-    const jarUrl = `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${build}/downloads/${fileName}`;
+    const jarUrl = `https://api.papermc.io/v2/projects/${project}/versions/${version}/builds/${build}/downloads/${fileName}`;
     const spinner = ora(`Downloading ${fileName}...`).start();
 
     try {
@@ -386,24 +470,34 @@ async function downloadJar(
 
 const printInfoOverview = async (
     targetDir: string,
+    serverSoftware: string,
     selectedVersion: string,
     selectedBuild: string,
-    acceptEula: string,
-    port: number,
-    onlineMode: boolean
+    acceptEula: string | null,
+    port: number | null,
+    onlineMode: boolean | null
 ) => {
     logFormatted('');
-    logTable(
+
+    const rows: string[][] = [
+        ['&bTarget directory', '&7' + targetDir],
         [
-            ['&bTarget directory', '&7' + targetDir],
-            ['&bPaperMC', '&7' + selectedVersion + ', build ' + selectedBuild],
-            ['&bAccept EULA', '&7' + acceptEula],
-            ['&bPort', '&7' + port],
-            ['&bOnline mode', '&7' + onlineMode]
-        ],
-        {
-            gapBetweenColumns: 5
-        }
-    );
+            '&bSoftware',
+            '&7' +
+                serverSoftware +
+                ' ' +
+                selectedVersion +
+                ', build ' +
+                selectedBuild
+        ]
+    ];
+    if (acceptEula !== null) rows.push(['&bAccept EULA', '&7' + acceptEula]);
+    if (port !== null) rows.push(['&bPort', '&7' + port]);
+    if (onlineMode !== null) rows.push(['&bOnline mode', '&7' + onlineMode]);
+
+    logTable(rows, {
+        gapBetweenColumns: 5
+    });
+
     logFormatted('');
 };

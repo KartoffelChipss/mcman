@@ -27,6 +27,10 @@ program
 program
     .command('init [path]')
     .description('Initialize a new Minecraft server')
+    .option(
+        '-s, --server <server>',
+        'Specify the server software (paper, folia, velocity, waterfall)'
+    )
     .option('-v, --mc-version <version>', 'Specify the Minecraft version')
     .option('-b, --build <build>', 'Specify the build to download')
     .option('-e, --accept-eula', 'Accept the Minecraft EULA')

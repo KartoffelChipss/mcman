@@ -10,6 +10,7 @@ import {
     updateServer
 } from '../util/config/serverConfigManager';
 import { isProcessRunning } from '../util/processHelper';
+import { getMinecraftJarInfo, isMinecraftProxy } from '../util/jarInfo';
 
 export interface StartCommandOptions {
     flags?: string;
@@ -27,6 +28,7 @@ export const startCommand = async (
             ? options.flags
             : (appConfig.get('javaArgs') as string)
     ).split(' ');
+
     const gui = options.gui !== undefined ? options.gui : appConfig.get('gui');
     const memory =
         options.memory !== undefined ? options.memory : appConfig.get('memory');
@@ -78,8 +80,11 @@ const startServer = (
     gui: boolean,
     memory: string,
     detach: boolean,
-    serverName?: string,
+    serverName?: string
 ): number | null => {
+    const mcServerInfos = getMinecraftJarInfo(serverJar);
+    const isProxy = isMinecraftProxy(mcServerInfos?.software || '');
+
     const dir = path.dirname(serverJar);
     const jarName = path.basename(serverJar);
     const command = 'java';
@@ -89,7 +94,7 @@ const startServer = (
         ...flags,
         '-jar',
         jarName,
-        gui ? '' : '--nogui'
+        gui || isProxy ? '' : '--nogui'
     ].filter((arg) => arg !== '');
 
     logFormatted(`&aStarting server in directory: ${dir}`);
@@ -112,14 +117,15 @@ const startServer = (
 
     process.on('SIGINT', () => {
         logFormatted('&cReceived SIGINT (Ctrl + C), stopping the server...');
-        if (serverName) updateServer(
-            {
-                name: serverName,
-                serverJar: serverJar,
-                pid: null,
-            },
-            false
-        )
+        if (serverName)
+            updateServer(
+                {
+                    name: serverName,
+                    serverJar: serverJar,
+                    pid: null
+                },
+                false
+            );
         serverProcess.kill('SIGTERM');
         process.exit(0);
     });
@@ -131,14 +137,15 @@ const startServer = (
     serverProcess.on('exit', (code) => {
         logFormatted(`&cServer exited with code: ${code}`);
 
-        if (serverName) updateServer(
-            {
-                name: serverName,
-                serverJar: serverJar,
-                pid: null,
-            },
-            false
-        )
+        if (serverName)
+            updateServer(
+                {
+                    name: serverName,
+                    serverJar: serverJar,
+                    pid: null
+                },
+                false
+            );
     });
 
     return pid;
