@@ -26,8 +26,8 @@ jobs:
       - name: Build project
         run: bun run build
 
-      - name: Configure npm for scoped package
-        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - name: Configure npm auth
+        run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
 
       - name: Publish to npm
         run: npm publish --access public
