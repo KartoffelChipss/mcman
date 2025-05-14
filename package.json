@@ -17,8 +17,7 @@
         "link": "tsc && bun link",
         "clean": "rm -rf dist",
         "lint": "eslint . --ext .js,.ts",
-        "format": "prettier --write .",
-        "publish": "tsc && npm publish"
+        "format": "prettier --write ."
     },
     "dependencies": {
         "adm-zip": "^0.5.16",
