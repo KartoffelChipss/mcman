@@ -13,7 +13,7 @@ import { stopCommand } from './commands/stop';
 import { openDirCommand, OpenDirCommandOptions } from './commands/openDir';
 import { jarInfoCommand } from './commands/jarInfo';
 
-const VERSION = '1.1.2';
+const VERSION = '1.2.0';
 
 const program = new Command();
 
