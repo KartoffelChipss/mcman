@@ -9,7 +9,7 @@ import {
     getVersions,
     ProjectBuildResponse,
     VersionResponse
-} from '../util/papeApi';
+} from '../util/paperApi';
 import { logFormatted, logTable } from '../util/formatter';
 import { downloadFile } from '../util/downloads';
 import path from 'path';
@@ -125,13 +125,7 @@ export const initCommand = async (
         await writeWaterfallConfig(cwd, port);
     }
 
-    await downloadAndVerifyJar(
-        serverSoftware,
-        selectedVersion,
-        selectedBuild,
-        buildInfo,
-        cwd
-    );
+    await downloadAndVerifyJar(buildInfo, cwd);
 
     const shouldSaveServer = await getShouldSaveServer();
 
@@ -388,21 +382,10 @@ const fetchBuildInfo = async (
 };
 
 const downloadAndVerifyJar = async (
-    project: string,
-    selectedVersion: string,
-    selectedBuild: string,
     buildInfo: ProjectBuildResponse,
     cwd: string
 ) => {
-    const downloadSuccess = await downloadJar(
-        project,
-        selectedVersion,
-        selectedBuild,
-        buildInfo.downloads.application.name,
-        'server.jar',
-        buildInfo.downloads.application.sha256,
-        cwd
-    );
+    const downloadSuccess = await downloadJar(cwd, 'server.jar', buildInfo);
 
     if (!downloadSuccess) {
         logFormatted('&cFailed to download Paper jar');
@@ -413,22 +396,18 @@ const downloadAndVerifyJar = async (
 };
 
 async function downloadJar(
-    project: string,
-    version: string,
-    build: string | number,
-    fileName: string,
+    targetPath: string,
     targetFileName: string,
-    sha256: string,
-    targetPath: string
+    buildInfo: ProjectBuildResponse
 ): Promise<boolean> {
-    const jarUrl = `https://api.papermc.io/v2/projects/${project}/versions/${version}/builds/${build}/downloads/${fileName}`;
-    const spinner = ora(`Downloading ${fileName}...`).start();
+    const jarUrl = buildInfo.downloadUrl;
+    const spinner = ora(`Downloading ${buildInfo.fileName}...`).start();
 
     try {
         await downloadFile(jarUrl, targetPath, targetFileName);
-        spinner.succeed(`Downloaded ${fileName} successfully.`);
+        spinner.succeed(`Downloaded ${buildInfo.fileName} successfully.`);
     } catch (error) {
-        spinner.fail(`Failed to download ${fileName}: ${error}`);
+        spinner.fail(`Failed to download ${buildInfo.fileName}: ${error}`);
         return false;
     }
 
@@ -446,7 +425,7 @@ async function downloadJar(
 
             fileStream.on('end', () => {
                 const fileHash = hash.digest('hex');
-                if (fileHash === sha256) {
+                if (fileHash === buildInfo.checksums.sha256) {
                     spinner.succeed('File hash verified successfully.');
                     resolve(true);
                 } else {
