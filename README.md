@@ -14,6 +14,7 @@ A Minecraft CLI app to quickly install and manage Minecraft servers
 - **Quick interactive server setup**: Quickly set up Minecraft servers with specific versions and configurations
 - **Customizable Server Configurations**: Specify memory allocation, server ports, and online modes
 - **Server List Management**: Save, list, and remove server configurations for easy reusability
+- **Plugin Management**: Quickly install and update plugins from Modrinth
 
 ## 📦 Installation
 
@@ -21,112 +22,9 @@ A Minecraft CLI app to quickly install and manage Minecraft servers
 npm install -g @kchips/mcman
 ```
 
-## 📋 Commands
+## ❓ Help
 
-### `init`
-
-Initialize a new project with a specific Minecraft version.
-
-```bash
-mcman init [path] [options]
-```
-
-**Options**:
-
-- `-v, --mc-version <version>`: Specify the Minecraft version.
-- `-b, --build <build>`: Specify the build to download.
-- `-e, --accept-eula`: Accept the Minecraft EULA.
-- `-p, --port <port>`: Specify the port to run the server on.
-- `-o, --online-mode`: Enable online mode.
-
-**Example**:
-
-```bash
-mcman init ./myserver -v 1.20.1 -e -p 25565 -o
-```
-
----
-
-### `start`
-
-Start a server.
-
-```bash
-mcman start [name] [options]
-```
-
-**Options**:
-
-- `--flags <flags>`: Specify the Java flags to use.
-- `--gui`: Open the server gui.
-- `-m, --memory <memory>`: Specify the amount of memory to allocate.
-- `-d, --detach`: Detach the server process
-
-**Example**:
-
-```bash
-mcman start myserver -m 4G --gui
-```
-
----
-
-### `save`
-
-Save the current directory as a server.
-
-```bash
-mcman save [path] [options]
-```
-
-**Options**:
-
-- `-n, --name <name>`: Specify the name of the server.
-
-**Example**:
-
-```bash
-mcman save ./myserver -n myserver
-```
-
----
-
-### `ls` (alias: `list`)
-
-List all saved servers.
-
-```bash
-mcman ls
-```
-
----
-
-### `rm`
-
-Remove a saved server.
-
-```bash
-mcman rm <name>
-```
-
-**Example**:
-
-```bash
-mcman rm myserver
-```
-
----
-
-### `config`
-
-Prints the path to the mcman config file.
-
-**Options**:
-
-- `-e, --edit`: Open the config file in the default text editor
-
-```bash
-mcman config
-```
+You can see all commands using `mcman help`.
 
 ## 📝 License
 

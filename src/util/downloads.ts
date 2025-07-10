@@ -37,8 +37,6 @@ export async function downloadFile(
         });
 
         await pipeline(nodeStream, fs.createWriteStream(fullDestination));
-
-        console.log(`File downloaded to ${fullDestination}`);
     } catch (error) {
         console.error(`Error downloading file: ${(error as Error).message}`);
         throw error;

@@ -13,6 +13,7 @@ import {
     StartCommand,
     StopCommand,
     ConfigCommand,
+    PluginsCommand,
     AppCommand
 } from './commands';
 import './util/config/mainConfig';
@@ -37,6 +38,7 @@ const commands: AppCommand[] = [
     new RemoveCommand(),
     new InfoCommand(),
     new OpenDirCommand(),
+    new PluginsCommand(),
     new JarInfoCommand(),
     new ConfigCommand()
 ];
