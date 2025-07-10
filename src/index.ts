@@ -2,17 +2,20 @@
 
 import { Command } from 'commander';
 import helpConfig from './util/helpConfig';
-import { initCommand, InitCommandOptions } from './commands/init';
+import {
+    InfoCommand,
+    InitCommand,
+    JarInfoCommand,
+    ListCommand,
+    OpenDirCommand,
+    RemoveCommand,
+    SaveCommand,
+    StartCommand,
+    StopCommand,
+    ConfigCommand,
+    AppCommand
+} from './commands';
 import './util/config/mainConfig';
-import { appConfig } from './util/config/mainConfig';
-import { saveCommand, SaveCommandOptions } from './commands/save';
-import { lsCommand } from './commands/ls';
-import { rmCommand } from './commands/rm';
-import { startCommand, StartCommandOptions } from './commands/start';
-import { stopCommand } from './commands/stop';
-import { openDirCommand, OpenDirCommandOptions } from './commands/openDir';
-import { jarInfoCommand } from './commands/jarInfo';
-import { infoCommand } from './commands/info';
 
 const VERSION = '1.2.0';
 
@@ -25,87 +28,20 @@ program
     .action(() => program.help())
     .configureHelp(helpConfig);
 
-program
-    .command('init [path]')
-    .description('Initialize a new Minecraft server')
-    .option(
-        '-s, --server <server>',
-        'Specify the server software (paper, folia, velocity, waterfall)'
-    )
-    .option('-v, --mc-version <version>', 'Specify the Minecraft version')
-    .option('-b, --build <build>', 'Specify the build to download')
-    .option('-e, --accept-eula', 'Accept the Minecraft EULA')
-    .option('-p, --port <port>', 'Specify the port to run the server on')
-    .option('-o, --online-mode', 'Enable online mode')
-    .action((path: string | undefined, options: InitCommandOptions) =>
-        initCommand(path, options)
-    );
+const commands: AppCommand[] = [
+    new InitCommand(),
+    new SaveCommand(),
+    new StartCommand(),
+    new StopCommand(),
+    new ListCommand(),
+    new RemoveCommand(),
+    new InfoCommand(),
+    new OpenDirCommand(),
+    new JarInfoCommand(),
+    new ConfigCommand()
+];
 
-program
-    .command('start [name]')
-    .description('Start a server')
-    .option('--flags <flags>', 'Specify the Java flags to use')
-    .option('--gui', 'Open the server GUI')
-    .option('-m, --memory <memory>', 'Specify the amount of memory to allocate')
-    .option('-d, --detach', 'Detach the server process')
-    .action((name: string | undefined, options: StartCommandOptions) =>
-        startCommand(name, options)
-    );
-
-program
-    .command('save [path]')
-    .description('Save the current directory as a server')
-    .option('-n, --name <name>', 'Specify the name of the server')
-    .action((path: string | undefined, options: SaveCommandOptions) =>
-        saveCommand(path, options)
-    );
-
-program
-    .command('stop <name>')
-    .description('Stop a running server')
-    .action((name: string) => stopCommand(name));
-
-program
-    .command('list')
-    .alias('ls')
-    .description('List all saved servers')
-    .action(() => lsCommand());
-
-program
-    .command('remove <name>')
-    .alias('rm')
-    .description('Remove a saved server')
-    .action((name: string) => rmCommand(name));
-
-program
-    .command('open-dir <name>')
-    .description('Open the directory of a saved server')
-    .option('-p, --path', 'Print the path instead of opening it')
-    .alias('od')
-    .action((name: string, options: OpenDirCommandOptions) =>
-        openDirCommand(name, options)
-    );
-
-program
-    .command('info <name>')
-    .description('Get information about a saved server')
-    .action((name: string) => infoCommand(name));
-
-program
-    .command('config')
-    .description('Open the configuration file in the default editor')
-    .option('-e, --edit', 'Open the configuration file in the default editor')
-    .action((options) => {
-        if (options.edit) appConfig.openInEditor();
-        else console.log(appConfig.getConfigPath());
-    });
-
-program
-    .command('jarinfo <jarPath>')
-    .description('Get information about a Minecraft server jar file')
-    .action((jarPath: string) => {
-        jarInfoCommand(jarPath);
-    });
+commands.forEach((command) => command.register(program));
 
 program
     .command('help')

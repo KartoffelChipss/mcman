@@ -11,15 +11,17 @@ import {
 } from '../util/config/serverConfigManager';
 import { isProcessRunning } from '../util/processHelper';
 import { getMinecraftJarInfo, isMinecraftProxy } from '../util/jarInfo';
+import { AppCommand } from './AppCommand';
+import { Command } from 'commander';
 
-export interface StartCommandOptions {
+interface StartCommandOptions {
     flags?: string;
     gui?: boolean;
     memory?: string;
     detach?: boolean;
 }
 
-export const startCommand = async (
+const startCommand = async (
     name: string | undefined,
     options: StartCommandOptions
 ) => {
@@ -200,3 +202,21 @@ const findServerJar = async (dir: string): Promise<string | null> => {
 
     return serverJar;
 };
+
+export class StartCommand extends AppCommand {
+    register(program: Command): void {
+        program
+            .command('start [name]')
+            .description('Start a server')
+            .option('--flags <flags>', 'Specify the Java flags to use')
+            .option('--gui', 'Open the server GUI')
+            .option(
+                '-m, --memory <memory>',
+                'Specify the amount of memory to allocate'
+            )
+            .option('-d, --detach', 'Detach the server process')
+            .action((name: string | undefined, options: StartCommandOptions) =>
+                startCommand(name, options)
+            );
+    }
+}

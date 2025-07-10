@@ -20,8 +20,10 @@ import {
 } from '../util/fileWriter';
 import { addServer, getServerByName } from '../util/config/serverConfigManager';
 import { isMinecraftProxy } from '../util/jarInfo';
+import { AppCommand } from './AppCommand';
+import { Command } from 'commander';
 
-export interface InitCommandOptions {
+interface InitCommandOptions {
     mcVersion?: string;
     build?: string;
     acceptEula?: boolean;
@@ -29,7 +31,7 @@ export interface InitCommandOptions {
     onlineMode?: boolean;
 }
 
-export const initCommand = async (
+const initCommand = async (
     workingDir: string | undefined,
     options: InitCommandOptions
 ) => {
@@ -480,3 +482,29 @@ const printInfoOverview = async (
 
     logFormatted('');
 };
+
+export class InitCommand extends AppCommand {
+    register(program: Command): void {
+        program
+            .command('init [path]')
+            .description('Initialize a new Minecraft server')
+            .option(
+                '-s, --server <server>',
+                'Specify the server software (paper, folia, velocity, waterfall)'
+            )
+            .option(
+                '-v, --mc-version <version>',
+                'Specify the Minecraft version'
+            )
+            .option('-b, --build <build>', 'Specify the build to download')
+            .option('-e, --accept-eula', 'Accept the Minecraft EULA')
+            .option(
+                '-p, --port <port>',
+                'Specify the port to run the server on'
+            )
+            .option('-o, --online-mode', 'Enable online mode')
+            .action((path: string | undefined, options: InitCommandOptions) =>
+                initCommand(path, options)
+            );
+    }
+}

@@ -1,9 +1,11 @@
+import { Command } from 'commander';
+import { AppCommand } from './AppCommand';
 import path from 'path';
 import { getServerByName } from '../util/config/serverConfigManager';
 import { logFormatted } from '../util/formatter';
 import { getMinecraftJarInfo } from '../util/jarInfo';
 
-export const infoCommand = (name: string) => {
+const infoCommand = (name: string) => {
     const server = getServerByName(name, true);
 
     if (!server) {
@@ -25,3 +27,12 @@ export const infoCommand = (name: string) => {
     logFormatted(`&fServer Software: &b${formattedServerType}`);
     logFormatted(`&fPath: &b${path.dirname(server.serverJar)}`);
 };
+
+export class InfoCommand extends AppCommand {
+    register(program: Command): void {
+        program
+            .command('info <name>')
+            .description('Get information about a saved server')
+            .action((name: string) => infoCommand(name));
+    }
+}

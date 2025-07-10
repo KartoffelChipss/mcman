@@ -4,12 +4,14 @@ import inquirer from 'inquirer';
 import { logFormatted } from '../util/formatter';
 import { appConfig } from '../util/config/mainConfig';
 import { ServerConfig } from '../util/config/serverConfigManager';
+import { AppCommand } from './AppCommand';
+import { Command } from 'commander';
 
-export interface SaveCommandOptions {
+interface SaveCommandOptions {
     name?: string;
 }
 
-export const saveCommand = async (
+const saveCommand = async (
     workingDir: string | undefined,
     options: SaveCommandOptions
 ) => {
@@ -51,7 +53,7 @@ export const saveCommand = async (
         name,
         serverJar,
         pid: null
-    }
+    };
 
     servers.push(serverData);
 
@@ -95,3 +97,15 @@ const findServerJar = async (dir: string): Promise<string | null> => {
 
     return serverJar;
 };
+
+export class SaveCommand extends AppCommand {
+    register(program: Command): void {
+        program
+            .command('save [path]')
+            .description('Save the current directory as a server')
+            .option('-n, --name <name>', 'Specify the name of the server')
+            .action((path: string | undefined, options: SaveCommandOptions) =>
+                saveCommand(path, options)
+            );
+    }
+}

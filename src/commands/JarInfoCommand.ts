@@ -1,7 +1,9 @@
+import { Command } from 'commander';
 import { formatString } from '../util/formatter';
 import { getMinecraftJarInfo } from '../util/jarInfo';
+import { AppCommand } from './AppCommand';
 
-export const jarInfoCommand = (jarPath: string) => {
+const jarInfoCommand = (jarPath: string) => {
     const info = getMinecraftJarInfo(jarPath);
 
     if (!info) {
@@ -16,3 +18,14 @@ export const jarInfoCommand = (jarPath: string) => {
 
     console.log(info.software + (info.version ? ` ${info.version}` : ''));
 };
+
+export class JarInfoCommand extends AppCommand {
+    register(program: Command): void {
+        program
+            .command('jarinfo <jarPath>')
+            .description('Get information about a Minecraft server jar file')
+            .action((jarPath: string) => {
+                jarInfoCommand(jarPath);
+            });
+    }
+}

@@ -7,8 +7,10 @@ import pidusage from 'pidusage';
 import os from 'os';
 import { getMinecraftJarInfo } from '../util/jarInfo';
 import { existsSync } from 'fs';
+import { AppCommand } from './AppCommand';
+import { Command } from 'commander';
 
-export const lsCommand = async () => {
+const lsCommand = async () => {
     const servers = appConfig.get('servers');
 
     if (servers.length === 0) {
@@ -105,3 +107,13 @@ const formatUptime = (seconds: number) => {
     const parts = formattedUptime.trim().split(' ');
     return parts.slice(0, 2).join(' ');
 };
+
+export class ListCommand extends AppCommand {
+    register(program: Command): void {
+        program
+            .command('list')
+            .alias('ls')
+            .description('List all saved servers')
+            .action(() => lsCommand());
+    }
+}

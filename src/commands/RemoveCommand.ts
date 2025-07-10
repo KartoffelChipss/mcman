@@ -1,7 +1,9 @@
+import { Command } from 'commander';
 import { appConfig } from '../util/config/mainConfig';
 import { logFormatted } from '../util/formatter';
+import { AppCommand } from './AppCommand';
 
-export const rmCommand = async (name: string) => {
+const rmCommand = async (name: string) => {
     const servers = appConfig.get('servers');
     const serverIndex = servers.findIndex(
         (server: any) => server.name === name
@@ -18,3 +20,13 @@ export const rmCommand = async (name: string) => {
 
     logFormatted(`&aServer ${name} removed successfully!`);
 };
+
+export class RemoveCommand extends AppCommand {
+    register(program: Command): void {
+        program
+            .command('remove <name>')
+            .alias('rm')
+            .description('Remove a saved server')
+            .action((name: string) => rmCommand(name));
+    }
+}
