@@ -12,6 +12,7 @@ import { startCommand, StartCommandOptions } from './commands/start';
 import { stopCommand } from './commands/stop';
 import { openDirCommand, OpenDirCommandOptions } from './commands/openDir';
 import { jarInfoCommand } from './commands/jarInfo';
+import { infoCommand } from './commands/info';
 
 const VERSION = '1.2.0';
 
@@ -84,6 +85,11 @@ program
     .action((name: string, options: OpenDirCommandOptions) =>
         openDirCommand(name, options)
     );
+
+program
+    .command('info <name>')
+    .description('Get information about a saved server')
+    .action((name: string) => infoCommand(name));
 
 program
     .command('config')
