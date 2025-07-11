@@ -183,86 +183,131 @@ const getServerName = async (defaultName: string) => {
 };
 
 const getShouldSaveServer = async () => {
-    const { saveServer } = await inquirer.prompt([
-        {
-            type: 'confirm',
-            name: 'saveServer',
-            message: 'Save the server configuration?',
-            default: true
-        }
-    ]);
+    try {
+        const { saveServer } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'saveServer',
+                message: 'Save the server configuration?',
+                default: true
+            }
+        ]);
 
-    return saveServer;
+        return saveServer;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            process.exit(1);
+        }
+        console.error('Error getting save server option:', error);
+        return true;
+    }
 };
 
 const getShouldAcceptEula = async () => {
-    const { acceptEula } = await inquirer.prompt([
-        {
-            type: 'confirm',
-            name: 'acceptEula',
-            message: 'Do you accept the Minecraft EULA?',
-            default: true
-        }
-    ]);
+    try {
+        const { acceptEula } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'acceptEula',
+                message: 'Do you accept the Minecraft EULA?',
+                default: true
+            }
+        ]);
 
-    return acceptEula;
+        return acceptEula;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            process.exit(1);
+        }
+        console.error('Error getting EULA acceptance:', error);
+        return true;
+    }
 };
 
 const getPort = async (defaultPort: number = 25565) => {
-    const { port } = await inquirer.prompt([
-        {
-            type: 'number',
-            name: 'port',
-            message: 'Enter the port to run the server on:',
-            default: defaultPort
-        }
-    ]);
+    try {
+        const { port } = await inquirer.prompt([
+            {
+                type: 'number',
+                name: 'port',
+                message: 'Enter the port to run the server on:',
+                default: defaultPort
+            }
+        ]);
 
-    return port;
+        return port;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            process.exit(1);
+        }
+        console.error('Error getting port:', error);
+        return defaultPort;
+    }
 };
 
 const getShouldUseOnlineMode = async () => {
-    const { onlineMode } = await inquirer.prompt([
-        {
-            type: 'confirm',
-            name: 'onlineMode',
-            message: 'Enable online mode?',
-            default: true
-        }
-    ]);
+    try {
+        const { onlineMode } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'onlineMode',
+                message: 'Enable online mode?',
+                default: true
+            }
+        ]);
 
-    return onlineMode;
+        return onlineMode;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            process.exit(1);
+        }
+        console.error('Error getting online mode:', error);
+        return true;
+    }
 };
 
 const selectServerSoftware = async (): Promise<string> => {
-    const spinner = ora(`Fetching available server software...`).start();
-    const availableSoftware = await getProjectList();
-    spinner.stop();
+    try {
+        const spinner = ora(`Fetching available server software...`).start();
+        const availableSoftware = await getProjectList();
+        spinner.stop();
 
-    if (availableSoftware === null) {
-        logFormatted('&cNo data available to select software');
+        if (availableSoftware === null) {
+            logFormatted('&cNo data available to select software');
+            return 'paper';
+        }
+
+        const priority = ['paper', 'velocity', 'folia', 'waterfall'];
+        const sortedSoftware = [
+            ...priority.filter((p) => availableSoftware.includes(p)),
+            ...availableSoftware.filter((s) => !priority.includes(s))
+        ];
+
+        const defaultSoftware = sortedSoftware[0];
+
+        const { selectServerSoftware } = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'selectServerSoftware',
+                message: `Choose a server software:`,
+                choices: sortedSoftware,
+                default: defaultSoftware
+            }
+        ]);
+
+        return selectServerSoftware;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            process.exit(1);
+        }
+        console.error('Error fetching server software:', error);
         return 'paper';
     }
-
-    const priority = ['paper', 'velocity', 'folia', 'waterfall'];
-    const sortedSoftware = [
-        ...priority.filter((p) => availableSoftware.includes(p)),
-        ...availableSoftware.filter((s) => !priority.includes(s))
-    ];
-
-    const defaultSoftware = sortedSoftware[0];
-
-    const { selectServerSoftware } = await inquirer.prompt([
-        {
-            type: 'list',
-            name: 'selectServerSoftware',
-            message: `Choose a server software:`,
-            choices: sortedSoftware,
-            default: defaultSoftware
-        }
-    ]);
-
-    return selectServerSoftware;
 };
 
 const fetchAvailableVersions = async (project: string) => {
@@ -279,85 +324,114 @@ const fetchAvailableVersions = async (project: string) => {
 };
 
 const selectVersionGroup = async (availablePaperVersions: VersionResponse) => {
-    const availableVersionGroups = Array.from(
-        new Set(
-            availablePaperVersions.versions.map((version) => {
-                const parts = version.split('.');
-                return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : version;
-            })
-        )
-    ).reverse();
-    const latestVersionGroup = availableVersionGroups[0];
+    try {
+        const availableVersionGroups = Array.from(
+            new Set(
+                availablePaperVersions.versions.map((version) => {
+                    const parts = version.split('.');
+                    return parts.length >= 2
+                        ? `${parts[0]}.${parts[1]}`
+                        : version;
+                })
+            )
+        ).reverse();
+        const latestVersionGroup = availableVersionGroups[0];
 
-    const { selectedGroup } = await inquirer.prompt([
-        {
-            type: 'list',
-            name: 'selectedGroup',
-            message: 'Choose a version group:',
-            choices: availableVersionGroups,
-            default: latestVersionGroup
+        const { selectedGroup } = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'selectedGroup',
+                message: 'Choose a version group:',
+                choices: availableVersionGroups,
+                default: latestVersionGroup
+            }
+        ]);
+
+        return selectedGroup;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            process.exit(1);
         }
-    ]);
-
-    return selectedGroup;
+        console.error('Error selecting version group:', error);
+        return null;
+    }
 };
 
 const selectVersionFromGroup = async (
     availablePaperVersions: VersionResponse,
     selectedGroup: string
 ) => {
-    const filteredVersions = availablePaperVersions.versions.filter((version) =>
-        version.includes(selectedGroup)
-    );
+    try {
+        const filteredVersions = availablePaperVersions.versions.filter(
+            (version) => version.includes(selectedGroup)
+        );
 
-    if (filteredVersions.length === 0) {
-        logFormatted(`&eNo versions found for group: ${selectedGroup}`);
+        if (filteredVersions.length === 0) {
+            logFormatted(`&eNo versions found for group: ${selectedGroup}`);
+            return null;
+        }
+
+        const latestVersion = filteredVersions[filteredVersions.length - 1];
+
+        const { selectedVersion } = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'selectedVersion',
+                message: `Choose a version from the "${selectedGroup}" group:`,
+                choices: filteredVersions,
+                default: latestVersion
+            }
+        ]);
+
+        return selectedVersion;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            return null;
+        }
+        console.error('Error selecting version from group:', error);
         return null;
     }
-
-    const latestVersion = filteredVersions[filteredVersions.length - 1];
-
-    const { selectedVersion } = await inquirer.prompt([
-        {
-            type: 'list',
-            name: 'selectedVersion',
-            message: `Choose a version from the "${selectedGroup}" group:`,
-            choices: filteredVersions,
-            default: latestVersion
-        }
-    ]);
-
-    return selectedVersion;
 };
 
 const selectBuild = async (project: string, selectedVersion: string) => {
-    const spinner = ora(
-        `Fetching builds for version ${selectedVersion}...`
-    ).start();
-    const availableBuildsRaw = await getBuilds(project, selectedVersion);
-    spinner.stop();
+    try {
+        const spinner = ora(
+            `Fetching builds for version ${selectedVersion}...`
+        ).start();
+        const availableBuildsRaw = await getBuilds(project, selectedVersion);
+        spinner.stop();
 
-    if (availableBuildsRaw === null) {
-        logFormatted('&cNo data available to select builds');
+        if (availableBuildsRaw === null) {
+            logFormatted('&cNo data available to select builds');
+            return null;
+        }
+
+        const availableBuilds = availableBuildsRaw.builds
+            .reverse()
+            .map((build) => build.toString());
+        const defaultBuild = availableBuilds[0];
+
+        const { selectedBuild } = await inquirer.prompt([
+            {
+                type: 'list',
+                name: 'selectedBuild',
+                message: `Choose a build for version ${selectedVersion}:`,
+                choices: availableBuilds,
+                default: defaultBuild
+            }
+        ]);
+
+        return selectedBuild;
+    } catch (error: any) {
+        if (error.message.includes('User force closed')) {
+            logFormatted(`&cOperation cancelled.`);
+            return null;
+        }
+        console.error('Error selecting build:', error);
         return null;
     }
-
-    const availableBuilds = availableBuildsRaw.builds
-        .reverse()
-        .map((build) => build.toString());
-    const defaultBuild = availableBuilds[0];
-
-    const { selectedBuild } = await inquirer.prompt([
-        {
-            type: 'list',
-            name: 'selectedBuild',
-            message: `Choose a build for version ${selectedVersion}:`,
-            choices: availableBuilds,
-            default: defaultBuild
-        }
-    ]);
-
-    return selectedBuild;
 };
 
 const fetchBuildInfo = async (
