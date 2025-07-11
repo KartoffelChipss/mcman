@@ -63,7 +63,7 @@ const addPlugin = async (serverName: string, plugin: string) => {
     }
 
     const searchResults = await modrinth.search(plugin, {
-        limit: 10,
+        limit: 15,
         index: SearchIndex.Relevance,
         facets: new SearchFacets(...facetGroups)
     });
@@ -80,8 +80,10 @@ const addPlugin = async (serverName: string, plugin: string) => {
             type: 'list',
             name: 'selectServerSoftware',
             message: `Choose a server software:`,
-            choices: searchResults.hits.map((hit) => ({
-                name: hit.title,
+            loop: false,
+            choices: searchResults.hits.map((hit, i) => ({
+                name: `${i + 1 < 10 ? '0' + (i + 1) : i + 1} ${hit.title}`,
+                description: `${hit.slug} | ⬇︎ ${hit.downloads.toLocaleString()}\n${hit.description}`,
                 value: hit
             }))
         }
